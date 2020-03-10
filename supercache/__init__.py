@@ -28,9 +28,13 @@ class cache(object):
     Hits = defaultdict(int)
     Misses = defaultdict(int)
 
+    FIFO = 0  # First in first out
+    LRU = 1  # Least recently used
+    LFU = 2  # Least frequently used
+
     __slots__ = ['keys', 'ignore', 'timeout', 'size', 'precalculate']
 
-    def __init__(self, keys=None, ignore=None, timeout=None, size=None, precalculate=False):
+    def __init__(self, keys=None, ignore=None, timeout=None, maxsize=None, maxitems=None, precalculate=False, policy=FIFO):
         """Define the caching options.
 
         The cache key is generated from a function and its arguments,
@@ -62,7 +66,7 @@ class cache(object):
         self.keys = keys
         self.ignore = ignore
         self.timeout = timeout
-        self.size = size
+        self.size = maxsize
         self.precalculate = precalculate
 
     def __call__(self, fn):
