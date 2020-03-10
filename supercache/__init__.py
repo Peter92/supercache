@@ -12,6 +12,19 @@ from .utils import *
 __version__ = '1.0.0'
 
 
+class Cache(object):
+    LocalDict = 0
+    def __init__(self, group=None, method=LocalDict):
+        self.group = group
+        if method == self.LocalDict:
+            self.Data = {}
+
+    def __call__(self, *args, **kwargs):
+        new = cache(*args, **kwargs)
+        new._group = self.group
+        return new
+
+
 class cache(object):
     """Base cache wrapper.
     This is designed to be added to a function as a decorator.
@@ -21,12 +34,12 @@ class cache(object):
         def func(): pass
     """
 
-    Data = {}
-    Accessed = {}
-    Size = {None: 0}
-    Order = []
-    Hits = defaultdict(int)
-    Misses = defaultdict(int)
+    Data = defaultdict(dict)
+    Accessed = defaultdict(dict)
+    Size = defaultdict(lambda: {None: 0})
+    Order = defaultdict(list)
+    Hits = defaultdict(lambda: defaultdict(int))
+    Misses = defaultdict(lambda: defaultdict(int))
 
     __slots__ = ['keys', 'ignore', 'timeout', 'size', 'precalculate']
 
@@ -137,6 +150,15 @@ class cache(object):
 
             return self.Data[uid]
         return wrapper
+
+    @property
+    def group(self):
+        return self._group
+
+    @group.setter
+    def group(self, group):
+        self._group = group
+        self.data = self.Data[group]
 
     @classmethod
     def _delete_uid(cls, uid):
